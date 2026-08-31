@@ -11,7 +11,8 @@ Spring Boot + React 기반 할 일 관리 서비스
 | 구분 | 기술 |
 |------|------|
 | Frontend | React 19, Vite, Axios, Day.js |
-| Backend | Spring Boot 4.1, Spring Data JPA, Spring Validation |
+| Backend | Spring Boot 4.1, Spring Data JPA, Spring Security, Spring Validation |
+| 인증 | JWT (jjwt 0.12.6), BCrypt 암호화 |
 | DB (dev) | H2 (In-Memory) |
 | DB (prod) | MySQL |
 | 빌드 도구 | Gradle (백엔드), npm (프론트엔드) |
@@ -21,6 +22,7 @@ Spring Boot + React 기반 할 일 관리 서비스
 
 ## 기능
 
+- **회원가입 / 로그인** — JWT 기반 인증, 본인 할일만 조회·수정·삭제 가능
 - Todo **등록 / 조회 / 수정 / 삭제 (CRUD)**
 - **완료 처리** 토글 (체크박스)
 - **마감 24시간 이내** 항목 구분 표시 (`마감 임박` 배지)
@@ -36,10 +38,22 @@ Spring Boot + React 기반 할 일 관리 서비스
 ## ERD
 
 ```
+┌─────────────────────────────────────────┐
+│                  users                  │
+├──────────────┬──────────────────────────┤
+│ id           │ BIGINT (PK, AUTO_INCREMENT│
+│ username     │ VARCHAR(20) UNIQUE NOT NULL│
+│ password     │ VARCHAR(255) NOT NULL     │
+│ created_at   │ DATETIME (자동)           │
+└──────────────┴──────────────────────────┘
+                      │ 1
+                      │
+                      │ N
 ┌──────────────────────────────────────────┐
 │                   todos                  │
 ├──────────────┬───────────────────────────┤
 │ id           │ BIGINT (PK, AUTO_INCREMENT)│
+│ user_id      │ BIGINT (FK → users.id)    │
 │ title        │ VARCHAR(255) NOT NULL      │
 │ content      │ TEXT                       │
 │ deadline     │ DATETIME                   │
@@ -57,13 +71,56 @@ Spring Boot + React 기반 할 일 관리 서비스
 
 ### Base URL
 - 개발: `http://localhost:8080/api`
-- 운영: `https://{EC2_DOMAIN}/api`
+- 운영: `http://43.203.215.207:8080/api`
 
-### 엔드포인트
+### 인증
+
+인증이 필요한 API는 요청 헤더에 JWT 토큰을 포함해야 합니다.
+```
+Authorization: Bearer {token}
+```
+
+#### 회원가입
+```
+POST /auth/signup
+Content-Type: application/json
+```
+**Request Body**
+```json
+{ "username": "홍길동", "password": "password123" }
+```
+| 필드 | 조건 |
+|------|------|
+| username | 3~20자, 중복 불가 |
+| password | 6자 이상 |
+
+**Response 201**
+```json
+{ "token": "eyJ...", "username": "홍길동" }
+```
+
+#### 로그인
+```
+POST /auth/login
+Content-Type: application/json
+```
+**Request Body**
+```json
+{ "username": "홍길동", "password": "password123" }
+```
+**Response 200**
+```json
+{ "token": "eyJ...", "username": "홍길동" }
+```
+
+---
+
+### Todo (인증 필요)
 
 #### 목록 조회
 ```
 GET /todos
+Authorization: Bearer {token}
 ```
 | 파라미터 | 타입 | 필수 | 설명 |
 |---------|------|------|------|
@@ -98,12 +155,14 @@ GET /todos
 #### 단건 조회
 ```
 GET /todos/{id}
+Authorization: Bearer {token}
 ```
 **Response 200** — 위 content 배열의 단일 객체
 
 #### 등록
 ```
 POST /todos
+Authorization: Bearer {token}
 Content-Type: application/json
 ```
 **Request Body**
@@ -120,33 +179,33 @@ Content-Type: application/json
 #### 수정
 ```
 PUT /todos/{id}
+Authorization: Bearer {token}
 Content-Type: application/json
 ```
-**Request Body** — 등록과 동일
-
-**Response 200** — 수정된 Todo 객체
+**Request Body** — 등록과 동일 / **Response 200** — 수정된 Todo 객체
 
 #### 삭제
 ```
 DELETE /todos/{id}
+Authorization: Bearer {token}
 ```
 **Response 204 No Content**
 
 #### 완료 토글
 ```
 PATCH /todos/{id}/complete
+Authorization: Bearer {token}
 ```
 **Response 200** — 완료 상태가 반전된 Todo 객체
 
 ### 에러 응답
 ```json
-{
-  "message": "에러 메시지"
-}
+{ "message": "에러 메시지" }
 ```
 | 상태코드 | 원인 |
 |---------|------|
-| 400 | 유효성 검사 실패 (제목 누락 등) |
+| 400 | 유효성 검사 실패 / 중복 아이디 / 잘못된 비밀번호 |
+| 401 | 토큰 없음 또는 만료 |
 | 404 | 해당 Todo 없음 |
 | 500 | 서버 오류 |
 
@@ -161,18 +220,30 @@ todolist/
 │       ├── java/com/example/todolist/
 │       │   ├── config/
 │       │   │   ├── CorsConfig.java       # CORS 설정
+│       │   │   ├── SecurityConfig.java   # Spring Security + JWT 설정
 │       │   │   └── JpaConfig.java        # JPA Auditing
+│       │   ├── security/
+│       │   │   ├── JwtTokenProvider.java       # JWT 생성/검증
+│       │   │   ├── JwtAuthenticationFilter.java# 요청마다 토큰 검사
+│       │   │   └── UserDetailsServiceImpl.java # 사용자 조회
 │       │   ├── controller/
-│       │   │   └── TodoController.java   # REST API 엔드포인트
+│       │   │   ├── AuthController.java   # 회원가입/로그인 API
+│       │   │   └── TodoController.java   # Todo CRUD API
 │       │   ├── service/
-│       │   │   └── TodoService.java      # 비즈니스 로직
+│       │   │   ├── AuthService.java      # 인증 비즈니스 로직
+│       │   │   └── TodoService.java      # Todo 비즈니스 로직
 │       │   ├── repository/
-│       │   │   └── TodoRepository.java   # JPA 쿼리
+│       │   │   ├── UserRepository.java
+│       │   │   └── TodoRepository.java
 │       │   ├── entity/
-│       │   │   ├── Todo.java             # Todo 엔티티
-│       │   │   └── Category.java         # 카테고리 Enum
+│       │   │   ├── User.java
+│       │   │   ├── Todo.java
+│       │   │   └── Category.java
 │       │   ├── dto/
+│       │   │   ├── request/SignupRequest.java
+│       │   │   ├── request/LoginRequest.java
 │       │   │   ├── request/TodoRequest.java
+│       │   │   ├── response/TokenResponse.java
 │       │   │   └── response/TodoResponse.java
 │       │   └── exception/
 │       │       ├── GlobalExceptionHandler.java
@@ -183,11 +254,17 @@ todolist/
 │           └── application-prod.yml      # 운영 환경 (MySQL)
 ├── frontend/                             # React 프론트엔드
 │   ├── src/
-│   │   ├── api/todoApi.js               # Axios API 호출
+│   │   ├── api/
+│   │   │   ├── authApi.js               # 인증 API 호출
+│   │   │   └── todoApi.js               # Todo API 호출 (Bearer 토큰 자동 첨부)
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx          # 로그인 상태 전역 관리
 │   │   ├── components/
+│   │   │   ├── AuthForm.jsx             # 로그인/회원가입 화면
 │   │   │   ├── TodoForm.jsx             # 등록/수정 폼
 │   │   │   ├── TodoItem.jsx             # 할일 목록 아이템
-│   │   │   ├── TodoList.jsx             # 할일 목록 + 페이지네이션
+│   │   │   ├── TodoDateGroup.jsx        # 날짜별 그룹 목록
+│   │   │   ├── TodoCalendar.jsx         # 달력 보기
 │   │   │   └── TodoDetail.jsx           # 상세 모달
 │   │   ├── App.jsx                      # 메인 컴포넌트
 │   │   └── index.css                    # 스타일
@@ -235,6 +312,7 @@ npm run dev
 | `DB_USERNAME` | DB 사용자명 |
 | `DB_PASSWORD` | DB 비밀번호 |
 | `CORS_ALLOWED_ORIGINS` | 허용할 프론트엔드 도메인 |
+| `JWT_SECRET` | JWT 서명 키 (32자 이상) |
 
 ### 프론트엔드 환경 변수 (prod)
 
