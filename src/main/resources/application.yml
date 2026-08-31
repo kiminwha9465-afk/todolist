@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: dev
+  jackson:
+    time-zone: Asia/Seoul
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
