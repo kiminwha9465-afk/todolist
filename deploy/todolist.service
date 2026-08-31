@@ -1,0 +1,14 @@
+[Unit]
+Description=TodoList Spring Boot Application
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=ubuntu
+EnvironmentFile=/home/ubuntu/app.env
+ExecStart=/usr/bin/java -jar /home/ubuntu/todolist.jar
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
