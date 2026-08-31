@@ -31,6 +31,7 @@ Spring Boot + React 기반 할 일 관리 서비스
 - 상세 **모달** (항목 클릭 시 상세 정보 확인)
 - **목록 보기** — 마감일 기준 날짜 섹션 그룹화 (오늘 / 내일 / 이번 주 / 나중에 / 날짜 없음 / 기한 지남), 무한스크롤 (20개씩 자동 로드)
 - **달력 보기** — 월별 캘린더, 할일이 있는 날짜에 인디케이터 표시, 날짜 클릭 시 해당 할일 목록 표시
+- **상단 고정** — 중요 항목 📌 고정 토글, 고정된 항목은 목록 최상단 "고정됨" 섹션에 별도 표시
 - **환경 분리** — dev(H2) / prod(MySQL), CORS, API Base URL
 
 ---
@@ -60,6 +61,7 @@ Spring Boot + React 기반 할 일 관리 서비스
 │ completed    │ BOOLEAN DEFAULT false      │
 │ category     │ VARCHAR (WORK/PERSONAL/    │
 │              │          STUDY/OTHER)      │
+│ pinned       │ BOOLEAN DEFAULT false      │
 │ created_at   │ DATETIME (자동)            │
 │ updated_at   │ DATETIME (자동)            │
 └──────────────┴───────────────────────────┘
@@ -141,6 +143,7 @@ Authorization: Bearer {token}
       "completed": false,
       "category": "WORK",
       "deadlineImminent": false,
+      "pinned": false,
       "createdAt": "2026-08-31T09:00:00",
       "updatedAt": "2026-08-31T09:00:00"
     }
@@ -197,6 +200,13 @@ PATCH /todos/{id}/complete
 Authorization: Bearer {token}
 ```
 **Response 200** — 완료 상태가 반전된 Todo 객체
+
+#### 상단 고정 토글
+```
+PATCH /todos/{id}/pin
+Authorization: Bearer {token}
+```
+**Response 200** — 고정 상태가 반전된 Todo 객체
 
 ### 에러 응답
 ```json
