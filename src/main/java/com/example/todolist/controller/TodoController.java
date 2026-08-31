@@ -26,9 +26,10 @@ public class TodoController {
     public ResponseEntity<Page<TodoResponse>> getTodos(
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) Boolean completed,
+            @RequestParam(required = false) String keyword,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return ResponseEntity.ok(todoService.getTodos(category, completed, pageable));
+        return ResponseEntity.ok(todoService.getTodos(category, completed, keyword, pageable));
     }
 
     // GET /api/todos/{id}
@@ -63,5 +64,11 @@ public class TodoController {
     @PatchMapping("/{id}/complete")
     public ResponseEntity<TodoResponse> toggleComplete(@PathVariable Long id) {
         return ResponseEntity.ok(todoService.toggleComplete(id));
+    }
+
+    // PATCH /api/todos/{id}/pin
+    @PatchMapping("/{id}/pin")
+    public ResponseEntity<TodoResponse> pinTodo(@PathVariable Long id) {
+        return ResponseEntity.ok(todoService.pinTodo(id));
     }
 }

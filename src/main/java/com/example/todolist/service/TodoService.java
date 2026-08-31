@@ -10,7 +10,9 @@ import com.example.todolist.repository.TodoRepository;
 import com.example.todolist.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,19 +25,12 @@ public class TodoService {
     private final TodoRepository todoRepository;
     private final UserRepository userRepository;
 
-    public Page<TodoResponse> getTodos(Category category, Boolean completed, Pageable pageable) {
+    public Page<TodoResponse> getTodos(Category category, Boolean completed, String keyword, Pageable pageable) {
         User user = currentUser();
-        Page<Todo> todos;
-        if (category != null && completed != null) {
-            todos = todoRepository.findByUserAndCategoryAndCompleted(user, category, completed, pageable);
-        } else if (category != null) {
-            todos = todoRepository.findByUserAndCategory(user, category, pageable);
-        } else if (completed != null) {
-            todos = todoRepository.findByUserAndCompleted(user, completed, pageable);
-        } else {
-            todos = todoRepository.findByUser(user, pageable);
-        }
-        return todos.map(TodoResponse::from);
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword : null;
+        Sort sort = Sort.by(Sort.Direction.DESC, "pinned").and(pageable.getSort());
+        Pageable sorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return todoRepository.search(user, kw, category, completed, sorted).map(TodoResponse::from);
     }
 
     public TodoResponse getTodo(Long id) {
@@ -73,6 +68,13 @@ public class TodoService {
     public TodoResponse toggleComplete(Long id) {
         Todo todo = findOwned(id);
         todo.setCompleted(!todo.isCompleted());
+        return TodoResponse.from(todo);
+    }
+
+    @Transactional
+    public TodoResponse pinTodo(Long id) {
+        Todo todo = findOwned(id);
+        todo.setPinned(!todo.isPinned());
         return TodoResponse.from(todo);
     }
 

@@ -4,7 +4,7 @@ import TodoItem from './TodoItem'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
-export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDetail }) {
+export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDetail, onPin }) {
   const [month, setMonth] = useState(dayjs().startOf('month'))
   const [selected, setSelected] = useState(dayjs().format('YYYY-MM-DD'))
 
@@ -95,7 +95,7 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
               {selectedTodos.map(todo => (
                 <TodoItem key={todo.id} todo={todo}
                   onEdit={onEdit} onDelete={onDelete}
-                  onToggle={onToggle} onDetail={onDetail} />
+                  onToggle={onToggle} onDetail={onDetail} onPin={onPin} />
               ))}
             </div>
           )
@@ -112,7 +112,7 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
               {noDeadline.map(todo => (
                 <TodoItem key={todo.id} todo={todo}
                   onEdit={onEdit} onDelete={onDelete}
-                  onToggle={onToggle} onDetail={onDetail} />
+                  onToggle={onToggle} onDetail={onDetail} onPin={onPin} />
               ))}
             </div>
           </div>

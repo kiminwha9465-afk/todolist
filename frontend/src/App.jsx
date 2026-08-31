@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { createTodo, deleteTodo, getTodos, toggleComplete, updateTodo } from './api/todoApi'
+import { createTodo, deleteTodo, getTodos, pinTodo, toggleComplete, updateTodo } from './api/todoApi'
 import AuthForm from './components/AuthForm'
 import TodoCalendar from './components/TodoCalendar'
 import TodoDateGroup from './components/TodoDateGroup'
@@ -24,7 +24,8 @@ export default function App() {
   const [listTodos,   setListTodos]   = useState([])
   const [calTodos,    setCalTodos]    = useState([])
   const [hasMore,     setHasMore]     = useState(true)
-  const [filter,      setFilter]      = useState({ category: '', completed: '' })
+  const [filter,      setFilter]      = useState({ category: '', completed: '', keyword: '' })
+  const [searchInput, setSearchInput] = useState('')
   const [viewMode,    setViewMode]    = useState('list')
   const [loading,     setLoading]     = useState(false)
   const [editingTodo, setEditingTodo] = useState(null)
@@ -46,6 +47,7 @@ export default function App() {
       const params = { page: pageNum, size: PAGE_SIZE, sort: 'deadline,asc' }
       if (filter.category)        params.category  = filter.category
       if (filter.completed !== '') params.completed = filter.completed
+      if (filter.keyword)         params.keyword   = filter.keyword
       const res = await getTodos(params)
       const { content, last } = res.data
       setListTodos(prev => append ? [...prev, ...content] : content)
@@ -63,6 +65,7 @@ export default function App() {
       const params = { page: 0, size: 200, sort: 'deadline,asc' }
       if (filter.category)        params.category  = filter.category
       if (filter.completed !== '') params.completed = filter.completed
+      if (filter.keyword)         params.keyword   = filter.keyword
       const res = await getTodos(params)
       setCalTodos(res.data.content)
     } finally {
@@ -149,6 +152,21 @@ export default function App() {
     }
   }
 
+  const handlePin = async (id) => {
+    try {
+      await pinTodo(id)
+      refresh()
+    } catch (e) {
+      alert('고정 변경 실패: ' + (e.response?.data?.message ?? e.message))
+    }
+  }
+
+  // 검색어 디바운스 (400ms)
+  useEffect(() => {
+    const t = setTimeout(() => setFilter(p => ({ ...p, keyword: searchInput })), 400)
+    return () => clearTimeout(t)
+  }, [searchInput])
+
   const handleFilterChange = (key, value) => {
     setFilter(p => ({ ...p, [key]: p[key] === value && value !== '' ? '' : value }))
   }
@@ -164,6 +182,7 @@ export default function App() {
     onDelete: handleDelete,
     onToggle: handleToggle,
     onDetail: openDetail,
+    onPin:    handlePin,
   }
 
   return (
@@ -180,6 +199,26 @@ export default function App() {
       <div className="view-toggle">
         <button className={`view-btn${viewMode === 'list'     ? ' active' : ''}`} onClick={() => setViewMode('list')}>목록 보기</button>
         <button className={`view-btn${viewMode === 'calendar' ? ' active' : ''}`} onClick={() => setViewMode('calendar')}>달력 보기</button>
+      </div>
+
+      {/* Search */}
+      <div className="search-bar">
+        <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          className="search-input"
+          placeholder="제목 또는 내용으로 검색"
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+        />
+        {searchInput && (
+          <button className="search-clear" onClick={() => setSearchInput('')} aria-label="검색어 지우기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        )}
       </div>
 
       <div className="filters">

@@ -13,6 +13,7 @@ public record TodoResponse(
         boolean completed,
         Category category,
         boolean deadlineImminent,
+        boolean pinned,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -30,6 +31,7 @@ public record TodoResponse(
                 todo.isCompleted(),
                 todo.getCategory(),
                 imminent,
+                todo.isPinned(),
                 todo.getCreatedAt(),
                 todo.getUpdatedAt()
         );

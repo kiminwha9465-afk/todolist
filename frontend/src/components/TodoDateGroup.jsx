@@ -17,6 +17,7 @@ function classify(todos) {
   const result   = { overdue: [], today: [], tomorrow: [], week: [], later: [], none: [] }
 
   todos.forEach(todo => {
+    if (todo.pinned) return  // pinned items handled separately
     if (!todo.deadline) { result.none.push(todo); return }
     const d = dayjs(todo.deadline).startOf('day')
     if      (d.isBefore(today))   result.overdue.push(todo)
@@ -28,16 +29,33 @@ function classify(todos) {
   return result
 }
 
-export default function TodoDateGroup({ todos, loading, onEdit, onDelete, onToggle, onDetail }) {
+export default function TodoDateGroup({ todos, loading, onEdit, onDelete, onToggle, onDetail, onPin }) {
   if (!todos.length) {
     return loading
       ? <div className="empty">로딩 중...</div>
       : <div className="empty">할일이 없습니다. 새 할일을 추가해보세요!</div>
   }
+
+  const pinned = todos.filter(t => t.pinned)
   const groups = classify(todos)
+  const itemProps = { onEdit, onDelete, onToggle, onDetail, onPin }
 
   return (
     <div className="date-groups">
+      {pinned.length > 0 && (
+        <div className="date-group pinned-group">
+          <div className="date-group-header">
+            <span className="date-group-bar" style={{ background: '#f97316' }} />
+            <span className="date-group-label">📌 고정됨</span>
+            <span className="date-group-count" style={{ background: '#f97316' }}>{pinned.length}</span>
+          </div>
+          <div className="todo-list">
+            {pinned.map(todo => (
+              <TodoItem key={todo.id} todo={todo} {...itemProps} />
+            ))}
+          </div>
+        </div>
+      )}
       {SECTIONS.map(({ key, label, color }) => {
         const items = groups[key]
         if (!items.length) return null
@@ -50,9 +68,7 @@ export default function TodoDateGroup({ todos, loading, onEdit, onDelete, onTogg
             </div>
             <div className="todo-list">
               {items.map(todo => (
-                <TodoItem key={todo.id} todo={todo}
-                  onEdit={onEdit} onDelete={onDelete}
-                  onToggle={onToggle} onDetail={onDetail} />
+                <TodoItem key={todo.id} todo={todo} {...itemProps} />
               ))}
             </div>
           </div>

@@ -37,6 +37,10 @@ public class Todo {
     @Enumerated(EnumType.STRING)
     private Category category;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean pinned = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
