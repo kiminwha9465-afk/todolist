@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createTodo, deleteTodo, getTodos, toggleComplete, updateTodo } from './api/todoApi'
+import AuthForm from './components/AuthForm'
 import TodoCalendar from './components/TodoCalendar'
 import TodoDateGroup from './components/TodoDateGroup'
 import TodoDetail from './components/TodoDetail'
 import TodoForm from './components/TodoForm'
+import { useAuth } from './context/AuthContext'
 
 const CATEGORIES = [
   { value: '',         label: '전체' },
@@ -16,6 +18,9 @@ const CATEGORIES = [
 const PAGE_SIZE = 20
 
 export default function App() {
+  const { user, logout } = useAuth()
+  if (!user) return <AuthForm />
+
   const [listTodos,   setListTodos]   = useState([])
   const [calTodos,    setCalTodos]    = useState([])
   const [hasMore,     setHasMore]     = useState(true)
@@ -165,7 +170,11 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <h1>TodoList</h1>
-        <button className="btn primary" onClick={openCreate}>+ 새 할일</button>
+        <div className="header-right">
+          <span className="username-badge">{user.username}</span>
+          <button className="btn primary" onClick={openCreate}>+ 새 할일</button>
+          <button className="btn secondary" onClick={logout}>로그아웃</button>
+        </div>
       </header>
 
       <div className="view-toggle">
