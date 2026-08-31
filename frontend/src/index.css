@@ -390,6 +390,20 @@ body {
 }
 .cal-dot-more { font-size: 10px; color: #6b7280; font-weight: 600; }
 
+/* ── Infinite scroll indicators ──────────────────── */
+.load-spinner {
+  text-align: center;
+  color: #9ca3af;
+  padding: 20px 0;
+  font-size: 14px;
+}
+.load-end {
+  text-align: center;
+  color: #d1d5db;
+  padding: 20px 0;
+  font-size: 13px;
+}
+
 .cal-panel {
   background: #fff;
   border: 1px solid #e5e7eb;

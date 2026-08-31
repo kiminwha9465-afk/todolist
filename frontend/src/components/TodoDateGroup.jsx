@@ -28,8 +28,12 @@ function classify(todos) {
   return result
 }
 
-export default function TodoDateGroup({ todos, onEdit, onDelete, onToggle, onDetail }) {
-  if (!todos.length) return <div className="empty">할일이 없습니다. 새 할일을 추가해보세요!</div>
+export default function TodoDateGroup({ todos, loading, onEdit, onDelete, onToggle, onDetail }) {
+  if (!todos.length) {
+    return loading
+      ? <div className="empty">로딩 중...</div>
+      : <div className="empty">할일이 없습니다. 새 할일을 추가해보세요!</div>
+  }
   const groups = classify(todos)
 
   return (

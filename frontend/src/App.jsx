@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createTodo, deleteTodo, getTodos, toggleComplete, updateTodo } from './api/todoApi'
 import TodoCalendar from './components/TodoCalendar'
 import TodoDateGroup from './components/TodoDateGroup'
@@ -6,42 +6,109 @@ import TodoDetail from './components/TodoDetail'
 import TodoForm from './components/TodoForm'
 
 const CATEGORIES = [
-  { value: '', label: '전체' },
-  { value: 'WORK', label: '업무' },
+  { value: '',         label: '전체' },
+  { value: 'WORK',     label: '업무' },
   { value: 'PERSONAL', label: '개인' },
-  { value: 'STUDY', label: '학습' },
-  { value: 'OTHER', label: '기타' }
+  { value: 'STUDY',    label: '학습' },
+  { value: 'OTHER',    label: '기타' },
 ]
 
-export default function App() {
-  const [todos, setTodos] = useState([])
-  const [filter, setFilter] = useState({ category: '', completed: '' })
-  const [viewMode, setViewMode] = useState('list') // 'list' | 'calendar'
-  const [editingTodo, setEditingTodo] = useState(null)
-  const [detailTodo, setDetailTodo] = useState(null)
-  const [showForm, setShowForm] = useState(false)
-  const [loading, setLoading] = useState(false)
+const PAGE_SIZE = 20
 
-  const fetchTodos = useCallback(async () => {
+export default function App() {
+  const [listTodos,   setListTodos]   = useState([])
+  const [calTodos,    setCalTodos]    = useState([])
+  const [hasMore,     setHasMore]     = useState(true)
+  const [filter,      setFilter]      = useState({ category: '', completed: '' })
+  const [viewMode,    setViewMode]    = useState('list')
+  const [loading,     setLoading]     = useState(false)
+  const [editingTodo, setEditingTodo] = useState(null)
+  const [detailTodo,  setDetailTodo]  = useState(null)
+  const [showForm,    setShowForm]    = useState(false)
+
+  const isLoadingRef = useRef(false)
+  const hasMoreRef   = useRef(true)
+  const pageRef      = useRef(0)
+  const sentinelRef  = useRef(null)
+
+  useEffect(() => { hasMoreRef.current = hasMore }, [hasMore])
+
+  const fetchListPage = useCallback(async (pageNum, append) => {
+    if (isLoadingRef.current) return
+    isLoadingRef.current = true
+    setLoading(true)
+    try {
+      const params = { page: pageNum, size: PAGE_SIZE, sort: 'deadline,asc' }
+      if (filter.category)        params.category  = filter.category
+      if (filter.completed !== '') params.completed = filter.completed
+      const res = await getTodos(params)
+      const { content, last } = res.data
+      setListTodos(prev => append ? [...prev, ...content] : content)
+      setHasMore(!last)
+      pageRef.current = pageNum
+    } finally {
+      isLoadingRef.current = false
+      setLoading(false)
+    }
+  }, [filter])
+
+  const fetchCalTodos = useCallback(async () => {
     setLoading(true)
     try {
       const params = { page: 0, size: 200, sort: 'deadline,asc' }
-      if (filter.category) params.category = filter.category
+      if (filter.category)        params.category  = filter.category
       if (filter.completed !== '') params.completed = filter.completed
       const res = await getTodos(params)
-      setTodos(res.data.content)
+      setCalTodos(res.data.content)
     } finally {
       setLoading(false)
     }
   }, [filter])
 
-  useEffect(() => { fetchTodos() }, [fetchTodos])
+  // Reset + initial fetch when filter or viewMode changes
+  useEffect(() => {
+    pageRef.current    = 0
+    hasMoreRef.current = true
+    if (viewMode === 'list') {
+      setListTodos([])
+      setHasMore(true)
+      fetchListPage(0, false)
+    } else {
+      fetchCalTodos()
+    }
+  }, [viewMode, filter]) // fetchListPage/fetchCalTodos intentionally omitted to avoid double-fetch
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    if (viewMode !== 'list') return
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
+        fetchListPage(pageRef.current + 1, true)
+      }
+    }, { rootMargin: '0px 0px 200px 0px' })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [viewMode, fetchListPage])
+
+  const refresh = useCallback(() => {
+    pageRef.current    = 0
+    hasMoreRef.current = true
+    if (viewMode === 'list') {
+      setListTodos([])
+      setHasMore(true)
+      fetchListPage(0, false)
+    } else {
+      fetchCalTodos()
+    }
+  }, [viewMode, fetchListPage, fetchCalTodos])
 
   const handleCreate = async (data) => {
     try {
       await createTodo(data)
       setShowForm(false)
-      fetchTodos()
+      refresh()
     } catch (e) {
       alert('등록 실패: ' + (e.response?.data?.message ?? e.message))
     }
@@ -51,7 +118,7 @@ export default function App() {
     try {
       await updateTodo(editingTodo.id, data)
       setEditingTodo(null)
-      fetchTodos()
+      refresh()
     } catch (e) {
       alert('수정 실패: ' + (e.response?.data?.message ?? e.message))
     }
@@ -62,7 +129,7 @@ export default function App() {
     try {
       await deleteTodo(id)
       if (detailTodo?.id === id) setDetailTodo(null)
-      fetchTodos()
+      refresh()
     } catch (e) {
       alert('삭제 실패: ' + (e.response?.data?.message ?? e.message))
     }
@@ -71,7 +138,7 @@ export default function App() {
   const handleToggle = async (id) => {
     try {
       await toggleComplete(id)
-      fetchTodos()
+      refresh()
     } catch (e) {
       alert('상태 변경 실패: ' + (e.response?.data?.message ?? e.message))
     }
@@ -88,7 +155,6 @@ export default function App() {
   const closeDetail = ()     => setDetailTodo(null)
 
   const commonProps = {
-    todos,
     onEdit:   openEdit,
     onDelete: handleDelete,
     onToggle: handleToggle,
@@ -102,54 +168,43 @@ export default function App() {
         <button className="btn primary" onClick={openCreate}>+ 새 할일</button>
       </header>
 
-      {/* View toggle */}
       <div className="view-toggle">
-        <button
-          className={`view-btn${viewMode === 'list' ? ' active' : ''}`}
-          onClick={() => setViewMode('list')}
-        >
-          목록 보기
-        </button>
-        <button
-          className={`view-btn${viewMode === 'calendar' ? ' active' : ''}`}
-          onClick={() => setViewMode('calendar')}
-        >
-          달력 보기
-        </button>
+        <button className={`view-btn${viewMode === 'list'     ? ' active' : ''}`} onClick={() => setViewMode('list')}>목록 보기</button>
+        <button className={`view-btn${viewMode === 'calendar' ? ' active' : ''}`} onClick={() => setViewMode('calendar')}>달력 보기</button>
       </div>
 
-      {/* Filters */}
       <div className="filters">
         <div className="filter-group">
           {CATEGORIES.map(({ value, label }) => (
-            <button
-              key={value}
+            <button key={value}
               className={`filter-btn${filter.category === value ? ' active' : ''}`}
-              onClick={() => handleFilterChange('category', value)}
-            >
-              {label}
-            </button>
+              onClick={() => handleFilterChange('category', value)}>{label}</button>
           ))}
         </div>
         <div className="filter-group">
           {[['', '전체'], ['false', '진행 중'], ['true', '완료']].map(([val, label]) => (
-            <button
-              key={val}
+            <button key={val}
               className={`filter-btn${filter.completed === val ? ' active' : ''}`}
-              onClick={() => handleFilterChange('completed', val)}
-            >
-              {label}
-            </button>
+              onClick={() => handleFilterChange('completed', val)}>{label}</button>
           ))}
         </div>
       </div>
 
-      {loading
-        ? <div className="empty">로딩 중...</div>
-        : viewMode === 'list'
-          ? <TodoDateGroup {...commonProps} />
-          : <TodoCalendar  {...commonProps} />
-      }
+      {viewMode === 'list' ? (
+        <>
+          <TodoDateGroup todos={listTodos} loading={loading} {...commonProps} />
+          <div ref={sentinelRef} />
+          {loading && listTodos.length > 0 && <div className="load-spinner">불러오는 중...</div>}
+          {!hasMore && listTodos.length > 0 && <div className="load-end">모든 할일을 불러왔습니다</div>}
+        </>
+      ) : (
+        <>
+          {loading && calTodos.length === 0
+            ? <div className="empty">로딩 중...</div>
+            : <TodoCalendar todos={calTodos} {...commonProps} />
+          }
+        </>
+      )}
 
       {detailTodo && (
         <TodoDetail
