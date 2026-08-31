@@ -15,9 +15,9 @@ export default function TodoItem({ todo, onEdit, onDelete, onToggle, onDetail })
           onChange={() => onToggle(id)}
           className="todo-check"
         />
-        <div className="todo-body">
+        <div className="todo-body" onClick={() => onDetail(todo)} style={{ cursor: 'pointer' }}>
           <div className="todo-title-row">
-            <span className="todo-title clickable" onClick={() => onDetail(todo)}>{title}</span>
+            <span className="todo-title">{title}</span>
             {deadlineImminent && <span className="badge red">마감 임박</span>}
             {completed && <span className="badge green">완료</span>}
             {category && (
