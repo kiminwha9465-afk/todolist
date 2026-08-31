@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createTodo, deleteTodo, getTodos, toggleComplete, updateTodo } from './api/todoApi'
+import TodoDetail from './components/TodoDetail'
 import TodoForm from './components/TodoForm'
 import TodoList from './components/TodoList'
 
@@ -17,6 +18,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(0)
   const [filter, setFilter] = useState({ category: '', completed: '' })
   const [editingTodo, setEditingTodo] = useState(null)
+  const [detailTodo, setDetailTodo] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -41,27 +43,43 @@ export default function App() {
   useEffect(() => { fetchTodos() }, [fetchTodos])
 
   const handleCreate = async (data) => {
-    await createTodo(data)
-    setShowForm(false)
-    setCurrentPage(0)
-    fetchTodos()
+    try {
+      await createTodo(data)
+      setShowForm(false)
+      setCurrentPage(0)
+      fetchTodos()
+    } catch (e) {
+      alert('등록 실패: ' + (e.response?.data?.message ?? e.message))
+    }
   }
 
   const handleUpdate = async (data) => {
-    await updateTodo(editingTodo.id, data)
-    setEditingTodo(null)
-    fetchTodos()
+    try {
+      await updateTodo(editingTodo.id, data)
+      setEditingTodo(null)
+      fetchTodos()
+    } catch (e) {
+      alert('수정 실패: ' + (e.response?.data?.message ?? e.message))
+    }
   }
 
   const handleDelete = async (id) => {
     if (!window.confirm('삭제하시겠습니까?')) return
-    await deleteTodo(id)
-    fetchTodos()
+    try {
+      await deleteTodo(id)
+      fetchTodos()
+    } catch (e) {
+      alert('삭제 실패: ' + (e.response?.data?.message ?? e.message))
+    }
   }
 
   const handleToggle = async (id) => {
-    await toggleComplete(id)
-    fetchTodos()
+    try {
+      await toggleComplete(id)
+      fetchTodos()
+    } catch (e) {
+      alert('상태 변경 실패: ' + (e.response?.data?.message ?? e.message))
+    }
   }
 
   const handleFilterChange = (key, value) => {
@@ -72,6 +90,8 @@ export default function App() {
   const openCreate = () => { setEditingTodo(null); setShowForm(true) }
   const openEdit = (todo) => { setEditingTodo(todo); setShowForm(false) }
   const closeForm = () => { setShowForm(false); setEditingTodo(null) }
+  const openDetail = (todo) => setDetailTodo(todo)
+  const closeDetail = () => setDetailTodo(null)
 
   return (
     <div className="app">
@@ -114,7 +134,18 @@ export default function App() {
         onEdit={openEdit}
         onDelete={handleDelete}
         onToggle={handleToggle}
+        onDetail={openDetail}
       />
+
+      {detailTodo && (
+        <TodoDetail
+          todo={detailTodo}
+          onClose={closeDetail}
+          onEdit={openEdit}
+          onDelete={handleDelete}
+          onToggle={async (id) => { await handleToggle(id); setDetailTodo(null) }}
+        />
+      )}
 
       {(showForm || editingTodo) && (
         <TodoForm

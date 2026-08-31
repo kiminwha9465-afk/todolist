@@ -198,3 +198,68 @@ body {
 .form-row .form-group { flex: 1; }
 
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* Detail Modal */
+.detail-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.detail-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  line-height: 1;
+}
+.close-btn:hover { color: #374151; }
+.detail-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 20px;
+  word-break: break-word;
+}
+.detail-title.completed { text-decoration: line-through; color: #9ca3af; }
+.detail-section { margin-bottom: 14px; }
+.detail-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.detail-content {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.detail-value { font-size: 14px; color: #374151; }
+.detail-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Clickable title */
+.todo-title.clickable { cursor: pointer; }
+.todo-title.clickable:hover { color: #6366f1; text-decoration: underline; }

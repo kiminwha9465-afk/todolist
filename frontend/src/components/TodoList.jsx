@@ -1,6 +1,6 @@
 import TodoItem from './TodoItem'
 
-export default function TodoList({ todos, loading, page, currentPage, onPageChange, onEdit, onDelete, onToggle }) {
+export default function TodoList({ todos, loading, page, currentPage, onPageChange, onEdit, onDelete, onToggle, onDetail }) {
   if (loading) return <div className="empty">로딩 중...</div>
 
   if (todos.length === 0) return (
@@ -19,6 +19,7 @@ export default function TodoList({ todos, loading, page, currentPage, onPageChan
             onEdit={onEdit}
             onDelete={onDelete}
             onToggle={onToggle}
+            onDetail={onDetail}
           />
         ))}
       </div>

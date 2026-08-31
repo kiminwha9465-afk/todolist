@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 const CATEGORY_LABELS = { WORK: '업무', PERSONAL: '개인', STUDY: '학습', OTHER: '기타' }
 const CATEGORY_COLORS = { WORK: '#3b82f6', PERSONAL: '#10b981', STUDY: '#f59e0b', OTHER: '#8b5cf6' }
 
-export default function TodoItem({ todo, onEdit, onDelete, onToggle }) {
+export default function TodoItem({ todo, onEdit, onDelete, onToggle, onDetail }) {
   const { id, title, content, deadline, completed, category, deadlineImminent } = todo
 
   return (
@@ -17,7 +17,7 @@ export default function TodoItem({ todo, onEdit, onDelete, onToggle }) {
         />
         <div className="todo-body">
           <div className="todo-title-row">
-            <span className="todo-title">{title}</span>
+            <span className="todo-title clickable" onClick={() => onDetail(todo)}>{title}</span>
             {deadlineImminent && <span className="badge red">마감 임박</span>}
             {completed && <span className="badge green">완료</span>}
             {category && (
