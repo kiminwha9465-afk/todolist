@@ -263,3 +263,136 @@ body {
 /* Clickable title */
 .todo-title.clickable { cursor: pointer; }
 .todo-title.clickable:hover { color: #6366f1; text-decoration: underline; }
+
+/* ── View toggle ─────────────────────────────────── */
+.view-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+}
+.view-btn {
+  padding: 7px 20px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  transition: all 0.15s;
+}
+.view-btn:hover  { color: #374151; }
+.view-btn.active { background: #fff; color: #6366f1; box-shadow: 0 1px 4px rgba(0,0,0,0.12); font-weight: 600; }
+
+/* ── Date group (list view) ──────────────────────── */
+.date-groups { display: flex; flex-direction: column; gap: 28px; }
+
+.date-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.date-group-bar {
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.date-group-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+.date-group-count {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ── Calendar ────────────────────────────────────── */
+.cal-wrapper { display: flex; flex-direction: column; gap: 20px; }
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+.cal-title { font-size: 18px; font-weight: 700; color: #111827; min-width: 140px; text-align: center; }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+.cal-weekday {
+  text-align: center;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+.cal-weekday.sun { color: #ef4444; }
+.cal-weekday.sat { color: #3b82f6; }
+
+.cal-cell {
+  padding: 8px 6px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell:hover { background: #f9fafb; }
+.cal-cell.empty { cursor: default; background: #fafafa; }
+.cal-cell.today  .cal-day {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal-cell.selected { background: #eef2ff; }
+.cal-cell.selected:hover { background: #e0e7ff; }
+.cal-cell.sun .cal-day { color: #ef4444; }
+.cal-cell.sat .cal-day { color: #3b82f6; }
+.cal-cell.today .cal-day { color: #fff !important; }
+
+.cal-day { font-size: 13px; font-weight: 500; color: #374151; line-height: 28px; width: 28px; text-align: center; }
+
+.cal-dot-row { display: flex; gap: 3px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.cal-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #6366f1;
+  flex-shrink: 0;
+}
+.cal-dot-more { font-size: 10px; color: #6b7280; font-weight: 600; }
+
+.cal-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
