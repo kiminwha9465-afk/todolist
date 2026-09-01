@@ -4,6 +4,14 @@ import TodoItem from './TodoItem'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
+const CATEGORY_COLORS = {
+  WORK:     'rgba(59, 130, 246, 0.65)',
+  PERSONAL: 'rgba(16, 185, 129, 0.65)',
+  STUDY:    'rgba(139, 92, 246, 0.65)',
+  OTHER:    'rgba(249, 115, 22, 0.65)',
+}
+const getCategoryColor = (cat) => CATEGORY_COLORS[cat] ?? 'rgba(107, 114, 128, 0.55)'
+
 export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDetail, onPin, onCreateWithDate }) {
   const [month, setMonth] = useState(dayjs().startOf('month'))
   const [selected, setSelected] = useState(dayjs().format('YYYY-MM-DD'))
@@ -48,8 +56,9 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
         ))}
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} className="cal-cell empty" />
-          const dateKey = month.date(day).format('YYYY-MM-DD')
-          const count   = (byDate[dateKey] || []).length
+          const dateKey    = month.date(day).format('YYYY-MM-DD')
+          const dateTodos  = byDate[dateKey] || []
+          const count      = dateTodos.length
           const isToday    = dateKey === today
           const isSelected = dateKey === selected
           const col = i % 7
@@ -66,12 +75,14 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
               onClick={() => setSelected(dateKey)}
             >
               <span className="cal-day">{day}</span>
-              {count > 0 && <span className="cal-dot-row">
-                {Array.from({ length: Math.min(count, 3) }).map((_, idx) => (
-                  <span key={idx} className="cal-dot" />
-                ))}
-                {count > 3 && <span className="cal-dot-more">+{count - 3}</span>}
-              </span>}
+              {count > 0 && (
+                <div className="cal-bars">
+                  {dateTodos.slice(0, 3).map((todo, idx) => (
+                    <span key={idx} className="cal-bar" style={{ background: getCategoryColor(todo.category) }} />
+                  ))}
+                  {count > 3 && <span className="cal-bar-more">+{count - 3}</span>}
+                </div>
+              )}
             </div>
           )
         })}
