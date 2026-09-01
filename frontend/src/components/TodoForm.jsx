@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 const CATEGORIES = ['WORK', 'PERSONAL', 'STUDY', 'OTHER']
 const CATEGORY_LABELS = { WORK: '업무', PERSONAL: '개인', STUDY: '학습', OTHER: '기타' }
 
-export default function TodoForm({ initial, onSubmit, onCancel }) {
-  const [form, setForm] = useState({ title: '', content: '', deadline: '', category: '' })
+export default function TodoForm({ initial, onSubmit, onCancel, defaultDeadline }) {
+  const [form, setForm] = useState({ title: '', content: '', deadline: defaultDeadline || '', category: '' })
 
   useEffect(() => {
     if (initial) {
@@ -15,9 +15,9 @@ export default function TodoForm({ initial, onSubmit, onCancel }) {
         category: initial.category || ''
       })
     } else {
-      setForm({ title: '', content: '', deadline: '', category: '' })
+      setForm({ title: '', content: '', deadline: defaultDeadline || '', category: '' })
     }
-  }, [initial])
+  }, [initial, defaultDeadline])
 
   const set = (key) => (e) => setForm((p) => ({ ...p, [key]: e.target.value }))
 

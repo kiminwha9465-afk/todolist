@@ -19,6 +19,13 @@ const PAGE_SIZE = 20
 
 export default function App() {
   const { user, logout } = useAuth()
+
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('darkMode', String(darkMode))
+  }, [darkMode])
+
   if (!user) return <AuthForm />
 
   const [listTodos,   setListTodos]   = useState([])
@@ -28,9 +35,10 @@ export default function App() {
   const [searchInput, setSearchInput] = useState('')
   const [viewMode,    setViewMode]    = useState('list')
   const [loading,     setLoading]     = useState(false)
-  const [editingTodo, setEditingTodo] = useState(null)
-  const [detailTodo,  setDetailTodo]  = useState(null)
-  const [showForm,    setShowForm]    = useState(false)
+  const [editingTodo,      setEditingTodo]      = useState(null)
+  const [detailTodo,       setDetailTodo]       = useState(null)
+  const [showForm,         setShowForm]         = useState(false)
+  const [selectedCalDate,  setSelectedCalDate]  = useState(null)
 
   const isLoadingRef = useRef(false)
   const hasMoreRef   = useRef(true)
@@ -171,9 +179,10 @@ export default function App() {
     setFilter(p => ({ ...p, [key]: p[key] === value && value !== '' ? '' : value }))
   }
 
-  const openCreate  = ()     => { setEditingTodo(null); setShowForm(true) }
-  const openEdit    = (todo) => { setEditingTodo(todo); setShowForm(false) }
-  const closeForm   = ()     => { setShowForm(false); setEditingTodo(null) }
+  const openCreate         = ()       => { setEditingTodo(null); setSelectedCalDate(null); setShowForm(true) }
+  const openCreateWithDate = (date)   => { setEditingTodo(null); setSelectedCalDate(`${date}T00:00`); setShowForm(true) }
+  const openEdit           = (todo)   => { setEditingTodo(todo); setSelectedCalDate(null); setShowForm(false) }
+  const closeForm          = ()       => { setShowForm(false); setEditingTodo(null); setSelectedCalDate(null) }
   const openDetail  = (todo) => setDetailTodo(todo)
   const closeDetail = ()     => setDetailTodo(null)
 
@@ -196,6 +205,21 @@ export default function App() {
         }}>TodoList</h1>
         <div className="header-right">
           <span className="username-badge">{user.username}</span>
+          <button className="dark-toggle" onClick={() => setDarkMode(d => !d)} title={darkMode ? '라이트 모드' : '다크 모드'}>
+            {darkMode ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            )}
+          </button>
           <button className="btn primary" onClick={openCreate}>+ 새 할일</button>
           <button className="btn secondary" onClick={logout}>로그아웃</button>
         </div>
@@ -254,7 +278,7 @@ export default function App() {
         <>
           {loading && calTodos.length === 0
             ? <div className="empty">로딩 중...</div>
-            : <TodoCalendar todos={calTodos} {...commonProps} />
+            : <TodoCalendar todos={calTodos} {...commonProps} onCreateWithDate={openCreateWithDate} />
           }
         </>
       )}
@@ -272,6 +296,7 @@ export default function App() {
       {(showForm || editingTodo) && (
         <TodoForm
           initial={editingTodo}
+          defaultDeadline={selectedCalDate}
           onSubmit={editingTodo ? handleUpdate : handleCreate}
           onCancel={closeForm}
         />

@@ -4,7 +4,7 @@ import TodoItem from './TodoItem'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
-export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDetail, onPin }) {
+export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDetail, onPin, onCreateWithDate }) {
   const [month, setMonth] = useState(dayjs().startOf('month'))
   const [selected, setSelected] = useState(dayjs().format('YYYY-MM-DD'))
 
@@ -81,12 +81,13 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
       <div className="cal-panel">
         <div className="date-group-header">
           <span className="date-group-bar" style={{ background: '#3b82f6' }} />
-          <span className="date-group-label">
-            {dayjs(selected).format('M월 D일')}
-          </span>
-          <span className="date-group-count" style={{ background: '#3b82f6' }}>
-            {selectedTodos.length}개
-          </span>
+          <span className="date-group-label">{dayjs(selected).format('M월 D일')}</span>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="date-group-count" style={{ background: '#3b82f6' }}>{selectedTodos.length}개</span>
+            {onCreateWithDate && (
+              <button className="cal-add-btn" onClick={() => onCreateWithDate(selected)}>+ 추가</button>
+            )}
+          </div>
         </div>
         {selectedTodos.length === 0
           ? <p className="empty" style={{ padding: '16px 0' }}>이 날짜에 할일이 없습니다.</p>
