@@ -188,7 +188,12 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>TodoList</h1>
+        <h1 style={{ cursor: 'pointer' }} onClick={() => {
+          setViewMode('list')
+          setFilter({ category: '', completed: '', keyword: '' })
+          setSearchInput('')
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}>TodoList</h1>
         <div className="header-right">
           <span className="username-badge">{user.username}</span>
           <button className="btn primary" onClick={openCreate}>+ 새 할일</button>
