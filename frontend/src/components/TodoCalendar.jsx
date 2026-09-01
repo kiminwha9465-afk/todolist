@@ -56,9 +56,10 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
         ))}
         {cells.map((day, i) => {
           if (!day) return <div key={`e-${i}`} className="cal-cell empty" />
-          const dateKey    = month.date(day).format('YYYY-MM-DD')
-          const dateTodos  = byDate[dateKey] || []
-          const count      = dateTodos.length
+          const dateKey     = month.date(day).format('YYYY-MM-DD')
+          const dateTodos   = byDate[dateKey] || []
+          const count       = dateTodos.length
+          const activeTodos = dateTodos.filter(t => !t.completed)
           const isToday    = dateKey === today
           const isSelected = dateKey === selected
           const col = i % 7
@@ -75,12 +76,12 @@ export default function TodoCalendar({ todos, onEdit, onDelete, onToggle, onDeta
               onClick={() => setSelected(dateKey)}
             >
               <span className="cal-day">{day}</span>
-              {count > 0 && (
+              {activeTodos.length > 0 && (
                 <div className="cal-bars">
-                  {dateTodos.slice(0, 3).map((todo, idx) => (
+                  {activeTodos.slice(0, 3).map((todo, idx) => (
                     <span key={idx} className="cal-bar" style={{ background: getCategoryColor(todo.category) }} />
                   ))}
-                  {count > 3 && <span className="cal-bar-more">+{count - 3}</span>}
+                  {activeTodos.length > 3 && <span className="cal-bar-more">+{activeTodos.length - 3}</span>}
                 </div>
               )}
             </div>
