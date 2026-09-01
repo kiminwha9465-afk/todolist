@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 
 const CATEGORY_LABELS = { WORK: '업무', PERSONAL: '개인', STUDY: '학습', OTHER: '기타' }
-const CATEGORY_COLORS = { WORK: '#3b82f6', PERSONAL: '#10b981', STUDY: '#f59e0b', OTHER: '#8b5cf6' }
+const CATEGORY_COLORS = { WORK: '#3b82f6', PERSONAL: '#06b6d4', STUDY: '#f59e0b', OTHER: '#8b5cf6' }
 
 export default function TodoDetail({ todo, onClose, onEdit, onDelete, onToggle }) {
   const { id, title, content, deadline, completed, category, deadlineImminent, createdAt, updatedAt } = todo
@@ -48,17 +48,6 @@ export default function TodoDetail({ todo, onClose, onEdit, onDelete, onToggle }
           </p>
         </div>
 
-        <div className="detail-section">
-          <span className="detail-label">등록일</span>
-          <p className="detail-value">{dayjs(createdAt).format('YYYY년 MM월 DD일 HH:mm')}</p>
-        </div>
-
-        {updatedAt !== createdAt && (
-          <div className="detail-section">
-            <span className="detail-label">수정일</span>
-            <p className="detail-value">{dayjs(updatedAt).format('YYYY년 MM월 DD일 HH:mm')}</p>
-          </div>
-        )}
 
         <div className="detail-actions">
           <button className="btn secondary" onClick={() => onToggle(id)}>
