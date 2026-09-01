@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 
 const CATEGORY_LABELS = { WORK: '업무', PERSONAL: '개인', STUDY: '학습', OTHER: '기타' }
-const CATEGORY_COLORS = { WORK: '#3b82f6', PERSONAL: '#10b981', STUDY: '#f59e0b', OTHER: '#8b5cf6' }
+const CATEGORY_COLORS = { WORK: '#3b82f6', PERSONAL: '#06b6d4', STUDY: '#f59e0b', OTHER: '#8b5cf6' }
 
 export default function TodoItem({ todo, onEdit, onDelete, onToggle, onDetail, onPin }) {
   const { id, title, content, deadline, completed, category, deadlineImminent, pinned } = todo

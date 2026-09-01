@@ -6,9 +6,9 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 const CATEGORY_COLORS = {
   WORK:     'rgba(59, 130, 246, 0.65)',
-  PERSONAL: 'rgba(16, 185, 129, 0.65)',
-  STUDY:    'rgba(139, 92, 246, 0.65)',
-  OTHER:    'rgba(249, 115, 22, 0.65)',
+  PERSONAL: 'rgba(6, 182, 212, 0.65)',
+  STUDY:    'rgba(245, 158, 11, 0.65)',
+  OTHER:    'rgba(139, 92, 246, 0.65)',
 }
 const getCategoryColor = (cat) => CATEGORY_COLORS[cat] ?? 'rgba(107, 114, 128, 0.55)'
 
