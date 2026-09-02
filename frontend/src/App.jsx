@@ -17,16 +17,8 @@ const CATEGORIES = [
 
 const PAGE_SIZE = 20
 
-export default function App() {
+function MainApp({ darkMode, setDarkMode }) {
   const { user, logout } = useAuth()
-
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode)
-    localStorage.setItem('darkMode', String(darkMode))
-  }, [darkMode])
-
-  if (!user) return <AuthForm />
 
   const [listTodos,   setListTodos]   = useState([])
   const [calTodos,    setCalTodos]    = useState([])
@@ -303,4 +295,17 @@ export default function App() {
       )}
     </div>
   )
+}
+
+export default function App() {
+  const { user } = useAuth()
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('darkMode', String(darkMode))
+  }, [darkMode])
+
+  if (!user) return <AuthForm />
+  return <MainApp darkMode={darkMode} setDarkMode={setDarkMode} />
 }
